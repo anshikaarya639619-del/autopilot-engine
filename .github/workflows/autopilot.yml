@@ -1,0 +1,35 @@
+name: 24x7 Content Engine Autopilot
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install groq
+
+      - name: Generate Content
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python generate.py
+
+      - name: Push Changes
+        run: |
+          git config --global user.name 'Autopilot Bot'
+          git config --global user.email 'bot@autopilot.com'
+          git add .
+          git commit -m "Auto-generated daily high-CPM content" || exit 0
+          git push
+          
